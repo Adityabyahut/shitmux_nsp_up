@@ -27,7 +27,7 @@ mv hac2l /usr/bin
 chmod +x /usr/bin/hac2l
 rm -rf reisu
 wget https://raw.githubusercontent.com/Adityabyahut/shitmux_nsp_up/main/reisu
-mv nspu /usr/bin
+mv reisu /usr/bin
 chmod +x /usr/bin/reisu
 
 echo "done"
