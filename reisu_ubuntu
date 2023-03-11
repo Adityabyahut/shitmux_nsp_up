@@ -1,0 +1,38 @@
+#!/bin/bash
+#this the the NSPU installer
+apt update -y
+apt upgrade -y
+apt install gcc make binutils wget vim
+
+
+git clone https://github.com/SciresM/hactool
+cd hactool
+mv config.mk.template config.mk
+make
+mv hactool /usr/bin
+cd ..
+git clone https://github.com/The-4n/hacPack
+rm -rf hactool
+
+cd hacPack
+mv config.mk.template config.mk
+make
+mv hacpack /usr/bin
+cd ..
+rm -rf hacPack
+
+rm -rf hac2l
+wget https://github.com/Adityabyahut/shitmux_nsp_up/raw/main/hac2l
+mv hac2l /usr/bin
+chmod +x /usr/bin/hac2l
+rm -rf reisu
+wget https://raw.githubusercontent.com/Adityabyahut/shitmux_nsp_up/main/reisu
+mv nspu /usr/bin
+chmod +x /usr/bin/reisu
+
+echo "done"
+echo "now exit termux properly"
+echo "put your NSP and Keys to"
+echo "Internal_Storage/termux"
+echo "(/storage/emulated/0/termux)"
+echo "and run reisu"
