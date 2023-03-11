@@ -1,0 +1,155 @@
+#!/bin/bash
+cd "/storage/emulated/0/termux"
+set -- *.nsp
+
+while true; do
+    i=0
+    for pathname do
+        i=$(( i + 1 ))
+        printf '%d) %s\n' "$i" "$pathname" >&2
+    done
+
+    printf 'Select base nsp file, or 0 to exit: ' >&2
+    read -r reply
+
+    number=$(printf '%s\n' "$reply" | tr -dc '[:digit:]')
+
+    if [ "$number" = "0" ]; then
+        echo 'owo' >&2
+        exit
+    elif [ "$number" -gt "$#" ]; then
+        echo 'bad choice' >&2
+    else
+        break
+    fi
+done
+
+shift "$(( number - 1 ))"
+basensp=$1
+set -- *.nsp
+
+while true; do
+    i=0
+    for pathname do
+        i=$(( i + 1 ))
+        printf '%d) %s\n' "$i" "$pathname" >&2
+    done
+
+    printf 'Select update nsp file, or 0 to exit: ' >&2
+    read -r reply
+
+    number=$(printf '%s\n' "$reply" | tr -dc '[:digit:]')
+
+    if [ "$number" = "0" ]; then
+        echo 'owo' >&2
+        exit
+    elif [ "$number" -gt "$#" ]; then
+        echo 'bad choice' >&2
+    else
+        break
+    fi
+done
+
+shift "$(( number - 1 ))"
+updatensp=$1
+oldhome="$HOME"
+export HOME="`pwd`"
+
+rm -rf .switch
+mkdir .switch
+
+if test -f 'prod.keys'; then
+    echo prod.keys good!
+else
+    echo Prod.keys missing!
+    export HOME=$oldhome
+    retir
+fi
+cp prod.keys .switch
+touch .switch/title.keys
+
+mkdir temp hactool_out
+cd hactool_out
+
+# derive title keys from base and update NSPs
+derivekey () {
+	title=$(xxd *.tik | grep -oP -m 1 "(?<=2a0: ).{39}" | sed 's/ //g')
+	key=$(xxd *.tik | grep -oP -m 1 "(?<=180: ).{39}" | sed 's/ //g')
+	echo $title=$key >> ../.switch/title.keys
+}
+
+hactool -t pfs0 "../$updatensp" --outdir . 
+derivekey
+updatenca=""
+basenca=""
+controlnca=""
+for i in *.nca
+do
+	type=$(hactool $i | grep -oP "(?<=Content Type:\s{23}).*")
+	patch=$(hactool $i | grep -oP "Patch")
+
+    if [ "$type" == "Program" ] && [ "$patch" == "Patch" ] && [ "$updatenca" == "" ]; then
+		updatenca=$i
+		mv $i ../temp
+	elif [ "$type" == "Control" ] && [ "$controlnca" == "" ]; then
+		controlnca=$i
+		mv $i ../temp
+	fi
+done
+rm *.tik
+hactool -t pfs0 "../$basensp" --outdir . 
+derivekey
+
+for i in *.nca
+do
+	type=$(hactool $i | grep -oP "(?<=Content Type:\s{23}).*")
+	patch=$(hactool $i | grep -oP "Patch")
+
+    if [ "$type" == "Program" ] && [ "$patch" == "" ] && [ "$basenca" == "" ]; then
+		basenca=$i
+		mv $i ../temp
+	elif [ "$type" == "Control" ] && [ "$controlnca" == "" ]; then
+		controlnca=$i
+		mv $i ../temp
+	fi
+done
+
+# extract update NSP and move program & control NCAs to temp dir
+
+rm *
+
+cd ..
+rm -rf hactool_out
+
+cd temp
+
+# parse Title ID from base program NCA
+titleid=$(hactool $basenca | grep -oP "(?<=Title ID:\s{27}).*")
+
+# extract base and update NCAs into romfs end exefs
+mkdir exefs romfs
+hac2l --basenca="$basenca" $updatenca --romfsdir="romfs" --exefsdir="exefs" 
+rm $basenca $updatenca
+
+# pack romfs and exefs into one NCA
+mkdir nca
+hacpack --type="nca" --ncatype="program" --plaintext --exefsdir="exefs" --romfsdir="romfs" --titleid="$titleid" --outdir="nca"
+patchednca=$(ls nca)
+mv $controlnca nca
+rm -rf exefs romfs
+
+# generate meta NCA from patched NCA and control NCA
+hacpack --type="nca" --ncatype="meta" --titletype="application" --programnca="nca/$patchednca" --controlnca="nca/$controlnca" --titleid="$titleid" --outdir="nca"
+
+# pack all three NCAs into an NSP
+mkdir nsp
+hacpack --type="nsp" --ncadir="nca" --titleid="$titleid" --outdir="nsp"
+
+cd ..
+mv temp/nsp/$titleid.nsp ./$titleid[reisu].nsp
+rm -rf temp
+
+export HOME=$oldhome
+
+echo DONE
+echo thanks JeezDisReez
