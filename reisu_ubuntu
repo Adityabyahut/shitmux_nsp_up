@@ -2,7 +2,7 @@
 #this the the NSPU installer
 apt update -y
 apt upgrade -y
-apt install gcc make binutils wget vim
+apt install gcc git make binutils wget vim
 
 
 git clone https://github.com/SciresM/hactool
