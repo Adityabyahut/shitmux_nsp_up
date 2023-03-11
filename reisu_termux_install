@@ -1,0 +1,14 @@
+#!/bin/bash
+#this the the NSPU installer
+termux-setup-storage
+cd
+mkdir -p "storage/shared/termux"
+touch "storage/shared/termux/put NSP&Keys here"
+pkg install proot-distro
+proot-distro install ubuntu
+echo "proot-distro login --bind /storage/emulated/0/termux ubuntu -- reisu" >> ~/../usr/bin/reisu
+chmod +x ~/../usr/bin/reisu
+proot-distro login ubuntu -- apt update -y && apt upgrade -y
+proot-distro login ubuntu -- apt install wget
+proot-distro login ubuntu -- wget https://raw.githubusercontent.com/Adityabyahut/shitmux_nsp_up/main/reisu_ubuntu
+proot-distro login ubuntu -- bash reisu_ubuntu
