@@ -1,14 +1,47 @@
 #!/bin/bash
-#this the the NSPU installer
+#this the the reisu installer
 termux-setup-storage
 cd
 mkdir -p "storage/shared/termux"
 touch "storage/shared/termux/put NSP&Keys here"
 pkg install proot-distro
 proot-distro install ubuntu
-echo "proot-distro login --bind /storage/emulated/0/termux ubuntu -- reisu" >> ~/../usr/bin/reisu
-chmod +x ~/../usr/bin/reisu
+clear
+
+rm '/data/data/com.termux/files/usr/bin/reisu'
+
+cat > '/data/data/com.termux/files/usr/bin/reisu' <<- EOF
+#!/bin/bash
+
+function r_up() {
+echo "updating reisu..."
+proot-distro login --bind /storage/emulated/0/termux ubuntu -- reisu_up
+}
+
+if [ \$# -ge 1 ]; then
+        case "\$1" in
+                u) shift 1; r_up
+                        exit 1
+                        ;;
+                *)
+                        echo "type 'reisu u' to update patcher"
+                        echo "or only 'reisu' to start patcher"
+                        exit 1
+                        ;;
+        esac
+else
+        proot-distro login --bind /storage/emulated/0/termux ubuntu -- reisu
+        exit 1
+fi
+echo failed
+exit 1
+
+EOF
+
+
+chmod +x '/data/data/com.termux/files/usr/bin/reisu'
+
 proot-distro login ubuntu -- apt update -y && apt upgrade -y
 proot-distro login ubuntu -- apt install wget
-proot-distro login ubuntu -- wget https://raw.githubusercontent.com/Adityabyahut/shitmux_nsp_up/main/reisu_ubuntu
+proot-distro login ubuntu -- wget -O reisu_ubuntu https://raw.githubusercontent.com/Adityabyahut/shitmux_nsp_up/main/reisu_ubuntu
 proot-distro login ubuntu -- bash reisu_ubuntu
