@@ -30,6 +30,7 @@ chmod +x /usr/bin/reisu
 wget -O reisu_up https://raw.githubusercontent.com/Adityabyahut/shitmux_nsp_up/main/reisu_up
 mv reisu_up /usr/bin
 chmod +x /usr/bin/reisu_up
+clear
 
 echo "done now exit termux properly"
 echo "put your NSP and Keys to -"
