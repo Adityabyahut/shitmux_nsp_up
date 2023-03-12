@@ -1,10 +1,10 @@
 #!/bin/bash
-#this the the NSPU installer
+#this the the reisu installer
 apt update -y
 apt upgrade -y
 apt install gcc git make binutils wget vim
 
-
+cd /tmp
 git clone https://github.com/SciresM/hactool
 cd hactool
 mv config.mk.template config.mk
@@ -21,18 +21,20 @@ mv hacpack /usr/bin
 cd ..
 rm -rf hacPack
 
-rm -rf hac2l
-wget https://github.com/Adityabyahut/shitmux_nsp_up/raw/main/hac2l
+wget -O hac2l https://github.com/Adityabyahut/shitmux_nsp_up/raw/main/hac2l
 mv hac2l /usr/bin
 chmod +x /usr/bin/hac2l
-rm -rf reisu
-wget https://raw.githubusercontent.com/Adityabyahut/shitmux_nsp_up/main/reisu
+wget -O reisu https://raw.githubusercontent.com/Adityabyahut/shitmux_nsp_up/main/reisu
 mv reisu /usr/bin
 chmod +x /usr/bin/reisu
+wget -O reisu_up https://raw.githubusercontent.com/Adityabyahut/shitmux_nsp_up/main/reisu_up
+mv /usr/bin/reisu_up
+chmod +x /usr/bin/reisu_up
 
-echo "done"
-echo "now exit termux properly"
-echo "put your NSP and Keys to"
-echo "Internal_Storage/termux"
-echo "(/storage/emulated/0/termux)"
+echo "done now exit termux properly"
+echo "put your NSP and Keys to -"
+echo "Internal_Storage/termux (/storage/emulated/0/termux)"
 echo "and run reisu"
+echo ""
+echo "credits - hactool/hac2l, hacpack"
+echo "JeezDisReez, Koki Kurosaki, Rei.."
