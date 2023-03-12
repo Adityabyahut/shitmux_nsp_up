@@ -1,0 +1,14 @@
+#!/bin/bash
+
+cd /tmp
+rm -rf /usr/bin/reisu
+wget -O reisu https://raw.githubusercontent.com/Adityabyahut/shitmux_nsp_up/main/reisu
+mv reisu /usr/bin
+chmod +x /usr/bin/reisu
+wget -O reisu_up this_file's link here
+mv reisu_up /usr/bin
+chmod +x /usr/bin/reisu_up
+
+clear
+echo "version 1.0 installed"
+echo 'Done'
