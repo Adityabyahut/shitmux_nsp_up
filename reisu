@@ -1,5 +1,18 @@
 #!/bin/bash
-cd "/storage/emulated/0/termux"
+nsp_path="/storage/emulated/0/termux"
+mkdir -p "/storage/emulated/0/termux"
+
+rm -rf "${HOME}/.switch"
+mkdir -p "${HOME}/.switch"
+cp "${nsp_path}/prod.keys" "${HOME}/.switch/"
+touch "${HOME}/.switch/title.keys"
+
+
+clear
+cd "${nsp_path}"
+
+echo "Rei's Switch_Updater v1.0"
+# Base & Update NSP's setup
 set -- *.nsp
 
 while true; do
@@ -15,7 +28,8 @@ while true; do
     number=$(printf '%s\n' "$reply" | tr -dc '[:digit:]')
 
     if [ "$number" = "0" ]; then
-        echo 'owo' >&2
+	clear
+        echo 'cancelled' >&2
         exit
     elif [ "$number" -gt "$#" ]; then
         echo 'bad choice' >&2
@@ -52,33 +66,22 @@ done
 
 shift "$(( number - 1 ))"
 updatensp=$1
-oldhome="$HOME"
-export HOME="`pwd`"
 
-rm -rf .switch
-mkdir .switch
+cd ${HOME}
 
-if test -f 'prod.keys'; then
-    echo prod.keys good!
-else
-    echo Prod.keys missing!
-    export HOME=$oldhome
-    retir
-fi
-cp prod.keys .switch
-touch .switch/title.keys
 
 mkdir temp hactool_out
 cd hactool_out
 
-# derive title keys from base and update NSPs
+# derive title keys!
+
 derivekey () {
 	title=$(xxd *.tik | grep -oP -m 1 "(?<=2a0: ).{39}" | sed 's/ //g')
 	key=$(xxd *.tik | grep -oP -m 1 "(?<=180: ).{39}" | sed 's/ //g')
-	echo $title=$key >> ../.switch/title.keys
+	echo $title=$key >> "${HOME}/.switch/title.keys"
 }
 
-hactool -t pfs0 "../$updatensp" --outdir . 
+hactool -t pfs0 "$nsp_path/$updatensp" --outdir . 
 derivekey
 updatenca=""
 basenca=""
@@ -90,15 +93,18 @@ do
 
     if [ "$type" == "Program" ] && [ "$patch" == "Patch" ] && [ "$updatenca" == "" ]; then
 		updatenca=$i
-		mv $i ../temp
+		mv $i "../temp"
 	elif [ "$type" == "Control" ] && [ "$controlnca" == "" ]; then
 		controlnca=$i
-		mv $i ../temp
+		mv $i "../temp"
 	fi
 done
 rm *.tik
-hactool -t pfs0 "../$basensp" --outdir . 
+hactool -t pfs0 "$nsp_path/$basensp" --outdir . 
 derivekey
+
+echo "Done with NSP's"
+clear
 
 for i in *.nca
 do
@@ -107,16 +113,14 @@ do
 
     if [ "$type" == "Program" ] && [ "$patch" == "" ] && [ "$basenca" == "" ]; then
 		basenca=$i
-		mv $i ../temp
+		mv $i "../temp"
 	elif [ "$type" == "Control" ] && [ "$controlnca" == "" ]; then
 		controlnca=$i
-		mv $i ../temp
+		mv $i "../temp"
 	fi
 done
 
 # extract update NSP and move program & control NCAs to temp dir
-
-rm *
 
 cd ..
 rm -rf hactool_out
@@ -143,13 +147,9 @@ hacpack --type="nca" --ncatype="meta" --titletype="application" --programnca="nc
 
 # pack all three NCAs into an NSP
 mkdir nsp
-hacpack --type="nsp" --ncadir="nca" --titleid="$titleid" --outdir="nsp"
+mkdir -p "$nsp_path/patched"
+hacpack --type="nsp" --ncadir="nca" --titleid="$titleid" --outdir="$nsp_path/patched"
 
-cd ..
-mv temp/nsp/$titleid.nsp ./$titleid[reisu].nsp
-rm -rf temp
+cd
+rm -rf "temp"
 
-export HOME=$oldhome
-
-echo DONE
-echo thanks JeezDisReez
